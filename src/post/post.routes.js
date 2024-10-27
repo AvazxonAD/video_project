@@ -12,9 +12,9 @@ const {
 } = require("./post.controller");
 
 router.post("/", protect, upload.single('file'), createPost);
-router.get("/", protect, getPost);
+router.get("/", getPost);
 router.put("/:id", protect, upload.single('file'), updatePost);
 router.delete("/:id", protect, deletePost);
-router.get("/:id", protect, getByIdPost);
+router.get("/:id", getByIdPost);
 
 module.exports = router;

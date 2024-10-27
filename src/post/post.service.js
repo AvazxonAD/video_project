@@ -12,17 +12,17 @@ const createPostService = async (data) => {
     }
 }
 
-const getPostService = async (user_id, offset, limit, category_id) => {
+const getPostService = async (offset, limit, category_id) => {
     try {
-        const params = [user_id, offset, limit]
+        const params = [offset, limit]
         let filter = ``
         if (category_id) {
             filter = ` AND category_id = $${params.length + 1}`
             params.push(category_id)
         }
         const result = await pool.query(`
-            WITH data AS (SELECT id, title, descr, category_id, view, click, imageurl FROM post WHERE isdeleted = false AND user_id = $1 ${filter} ORDER BY created_at OFFSET $2 LIMIT $3)
-            SELECT ARRAY_AGG(row_to_json(data)) AS data, (SELECT COALESCE((COUNT(id)), 0)::INTEGER FROM post WHERE isdeleted = false AND user_id = $1 ${filter}) AS total_count
+            WITH data AS (SELECT id, title, descr, category_id, view, click, imageurl FROM post WHERE isdeleted = false ${filter} ORDER BY created_at OFFSET $1 LIMIT $2)
+            SELECT ARRAY_AGG(row_to_json(data)) AS data, (SELECT COALESCE((COUNT(id)), 0)::INTEGER FROM post WHERE isdeleted = false ${filter}) AS total_count
             FROM data
         `, params);
         const data = result.rows[0]
@@ -32,11 +32,11 @@ const getPostService = async (user_id, offset, limit, category_id) => {
     }
 }
 
-const getByIdPostService = async (user_id, id, click = true) => {
+const getByIdPostService = async (id, click = true) => {
     const client = await pool.connect()
     try {
         await client.query(`BEGIN`)
-        let result = await client.query(`SELECT id, title, descr, category_id, view, click, imageurl FROM post WHERE id = $1 AND user_id = $2`, [id, user_id]);
+        let result = await client.query(`SELECT id, title, descr, category_id, view, click, imageurl FROM post WHERE id = $1`, [id]);
         if (!result.rows[0]) {
             throw new ErrorResponse('Post not found', 404)
         }

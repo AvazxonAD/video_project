@@ -31,10 +31,9 @@ const createPost = async (req, res) => {
 // get all
 const getPost = async (req, res) => {
     try {
-        const user_id = req.user.id
         const { page, limit, category_id } = validationResponse(postQueryValidation, req.query)
         const offset = (page - 1) * limit
-        const { data, total } = await getPostService(user_id, offset, limit, category_id);
+        const { data, total } = await getPostService(offset, limit, category_id);
         const pageCount = Math.ceil(total / limit);
         const meta = {
             pageCount: pageCount,
@@ -88,8 +87,7 @@ const deletePost = async (req, res) => {
 // get element by id
 const getByIdPost = async (req, res) => {
     try {
-        const user_id = req.user.id
-        const result = await getByIdPostService(user_id, req.params.id);
+        const result = await getByIdPostService(req.params.id);
         resFunc(res, 200, result)
     } catch (error) {
         errorCatch(error, res)
