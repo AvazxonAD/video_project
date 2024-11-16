@@ -15,6 +15,7 @@ require('colors')
 app.use('/auth', require('./auth/auth.routes'))
 app.use('/category', require('./category/category.routes'))
 app.use('/post', require('./post/post.routes'))
+app.use('/teg', require('./teg/teg.routes'))
 
 app.use(require("./utils/errorHandler"));
 

@@ -14,7 +14,17 @@ const loginValidation = Joi.object({
 const categoryValidation = Joi.object({
     name: Joi.string().trim().required()
 })
+
 const categoryQueryValidation = Joi.object({
+    page: Joi.number().min(1).default(1),
+    limit: Joi.number().min(1).default(10)
+})
+
+const tegValidation = Joi.object({
+    teg: Joi.string().trim().required()
+})
+
+const tegQueryValidation = Joi.object({
     page: Joi.number().min(1).default(1),
     limit: Joi.number().min(1).default(10)
 })
@@ -22,7 +32,8 @@ const categoryQueryValidation = Joi.object({
 const postValidation = Joi.object({
     title: Joi.string().trim(),
     descr: Joi.string().trim(),
-    category_id: Joi.number().min(1)
+    category_id: Joi.number().min(1),
+    content: Joi.string().trim()
 })
 const postQueryValidation = Joi.object({
     page: Joi.number().min(1).default(1),
@@ -35,5 +46,7 @@ module.exports = {
     categoryValidation, 
     categoryQueryValidation, 
     postValidation,
-    postQueryValidation
+    postQueryValidation,
+    tegValidation,
+    tegQueryValidation
 }

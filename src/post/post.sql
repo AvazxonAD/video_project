@@ -2,6 +2,7 @@ CREATE TABLE post (
     id SERIAL PRIMARY KEY,
     title VARCHAR(200) NOT NULL,
     descr VARCHAR(10000),
+    content TEXT,
     category_id INTEGER REFERENCES category(id) ON DELETE CASCADE,
     user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
     imageUrl VARCHAR(1000),

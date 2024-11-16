@@ -27,7 +27,7 @@ const getCategoryService = async (user_id, offset, limit) => {
   try {
     const result = await pool.query(`
       WITH data AS (SELECT id, name FROM category WHERE isdeleted = false AND user_id = $1 ORDER BY created_at OFFSET $2 LIMIT $3)
-      SELECT ARRAY_AGG(row_to_json(data)) AS data, (SELECT COALESCE((COUNT(id)), 0) FROM category WHERE isdeleted = false AND user_id = $1) AS total_count
+      SELECT ARRAY_AGG(row_to_json(data)) AS data, (SELECT COALESCE((COUNT(id)), 0)::INTEGER FROM category WHERE isdeleted = false AND user_id = $1) AS total_count
       FROM data
     `, [user_id, offset, limit]);
     const data = result.rows[0]

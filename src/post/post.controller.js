@@ -14,11 +14,13 @@ const path = require('path')
 const fs = require('fs')
 const { getByIdCategoryService } = require('../category/category.service')
 
+
 // createPost
 const createPost = async (req, res) => {
     try {
         const user_id = req.user.id
-        const data = validationResponse(postValidation, { title: req.body.title, descr: req.body.descr, category_id: req.body.category_id })
+        const data = validationResponse(postValidation, req.body)
+        console.log(data)
         await getByIdCategoryService(user_id, data.category_id)
         const url = '/uploads/' + req.file.filename
         const result = await createPostService({ ...data, user_id, imageurl: url });
