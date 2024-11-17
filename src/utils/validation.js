@@ -39,7 +39,7 @@ const postValidation = Joi.object({
     descr: Joi.string().trim(),
     category_id: Joi.number().min(1),
     content: Joi.string().trim(),
-    tags: Joi.string().trim(),
+    tags: Joi.string().trim().required(),
     fio: Joi.string().trim()
 })
 const postQueryValidation = Joi.object({
