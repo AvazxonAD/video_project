@@ -14,9 +14,10 @@ const createPostService = async (data) => {
             imageurl, 
             created_at, 
             updated_at, 
-            content
-        ) VALUES($1, $2, $3, $4, $5, $6, $7, $8) RETURNING * 
-        `, [data.title, data.descr, data.category_id, data.user_id, data.imageurl, tashkentTime(), tashkentTime(), data.content]);
+            content,
+            fio
+        ) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING * 
+        `, [data.title, data.descr, data.category_id, data.user_id, data.imageurl, tashkentTime(), tashkentTime(), data.content, data.fio]);
         data.tags = data.tags.map(item => {
             return { post_id: result.rows[0].id, tag_id: item, created_at: tashkentTime(), updated_at: tashkentTime() };
         });
@@ -48,7 +49,7 @@ const getPostService = async (offset, limit, category_id, user_id) => {
             params.push(category_id)
         }
         const result = await pool.query(`
-            WITH data AS (SELECT id, title, descr, content, category_id, view, click, imageurl FROM post WHERE isdeleted = false AND user_id = $3 ${filter} ORDER BY created_at OFFSET $1 LIMIT $2)
+            WITH data AS (SELECT id, title, fio, descr, content, category_id, view, click, imageurl FROM post WHERE isdeleted = false AND user_id = $3 ${filter} ORDER BY created_at OFFSET $1 LIMIT $2)
             SELECT ARRAY_AGG(row_to_json(data)) AS data, (SELECT COALESCE((COUNT(id)), 0)::INTEGER FROM post WHERE isdeleted = false AND user_id = $3 ${filter}) AS total_count
             FROM data
         `, params);
@@ -64,7 +65,7 @@ const getByIdPostService = async (user_id, id, click = true) => {
     try {
         await client.query(`BEGIN`)
         let result = await client.query(`
-            SELECT id, title, descr, content, category_id, view, click, imageurl 
+            SELECT id, title, fio, descr, content, category_id, view, click, imageurl 
             FROM post 
             WHERE id = $1 AND isdeleted = false AND user_id = $2
         `, [id, user_id]);
@@ -88,8 +89,8 @@ const updatePostService = async (data) => {
     const client = await pool.connect()
     try {
         await client.query('BEGIN')
-        const result = await pool.query(`UPDATE post SET title = $1, descr = $2, category_id = $3, imageurl = $4, updated_at = $5, content = $6 WHERE id = $7 RETURNING *
-        `, [data.title, data.descr, data.category_id, data.imageurl, tashkentTime(), data.content, data.id]);
+        const result = await pool.query(`UPDATE post SET title = $1, descr = $2, category_id = $3, imageurl = $4, updated_at = $5, content = $6, fio = $7 WHERE id = $8 RETURNING *
+        `, [data.title, data.descr, data.category_id, data.imageurl, tashkentTime(), data.content, data.fio, data.id]);
         await pool.query(`DELETE FROM tag_post WHERE post_id = $1`, [result.rows[0].id])
         data.tags = data.tags.map(item => {
             return { post_id: result.rows[0].id, tag_id: item, created_at: tashkentTime(), updated_at: tashkentTime() };

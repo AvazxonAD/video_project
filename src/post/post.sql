@@ -8,6 +8,7 @@ CREATE TABLE post (
     imageUrl VARCHAR(1000),
     view INTEGER DEFAULT 0,
     click INTEGER DEFAULT 0,
+    fio VARCHAR(500) NOT NULL,
     created_at DATE NOT NULL,
     updated_at DATE NOT NULL,
     isdeleted BOOLEAN DEFAULT false
