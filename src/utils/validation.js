@@ -29,6 +29,11 @@ const tegQueryValidation = Joi.object({
     limit: Joi.number().min(1).default(10)
 })
 
+const imageQueryValidation = Joi.object({
+    page: Joi.number().min(1).default(1),
+    limit: Joi.number().min(1).default(10)
+})
+
 const postValidation = Joi.object({
     title: Joi.string().trim(),
     descr: Joi.string().trim(),
@@ -49,5 +54,6 @@ module.exports = {
     postValidation,
     postQueryValidation,
     tegValidation,
-    tegQueryValidation
+    tegQueryValidation,
+    imageQueryValidation
 }
