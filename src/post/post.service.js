@@ -83,7 +83,7 @@ const getPostService = async (offset, limit, category_id, user_id, search) => {
                 (SELECT COALESCE((COUNT(id)), 0)::INTEGER FROM post AS p WHERE p.isdeleted = false AND p.user_id = $3 ${filter} ${search_filter}) AS total_count
             FROM data
         `, params);
-        const data = result.rows
+        const data = result.rows[0]
         return { data: data?.data || [], total: data.total_count };
     } catch (error) {
         throw new ErrorResponse(error, error.statusCode)

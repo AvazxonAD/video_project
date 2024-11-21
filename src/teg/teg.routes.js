@@ -9,8 +9,8 @@ const {
   getByIdteg,
 } = require("./teg.controller");
 
-router.post("/", protect, createteg);
 router.get("/", protect, getteg);
+router.post("/", protect, createteg);
 router.put("/:id", protect, updateteg);
 router.delete("/:id", protect, deleteteg);
 router.get("/:id", protect, getByIdteg);
