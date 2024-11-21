@@ -3,8 +3,7 @@ const {
     getPostService,
     getByIdPostService,
     updatePostService,
-    deletePostService,
-    addViewPostService
+    deletePostService
 } = require("./post.service");
 const { postQueryValidation, postValidation } = require("../utils/validation");;
 const { validationResponse } = require("../utils/validation.response");
@@ -57,7 +56,6 @@ const getPost = async (req, res) => {
             nextPage: page >= pageCount ? null : page + 1,
             backPage: page === 1 ? null : page - 1,
         }
-        await addViewPostService(data)
         resFunc(res, 200, data, meta)
     } catch (error) {
         errorCatch(error, res)

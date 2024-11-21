@@ -53,7 +53,7 @@ const getPostService = async (offset, limit, category_id, user_id, search) => {
             search_filter = `AND p.title ILIKE '%' || $${params.length + 1} || '%'`
             params.push(search)
         }
-        const result = await pool.query(`
+        const result = await pool.query(`--sql
             WITH data AS 
                 (
                     SELECT 
@@ -83,18 +83,16 @@ const getPostService = async (offset, limit, category_id, user_id, search) => {
                 (SELECT COALESCE((COUNT(id)), 0)::INTEGER FROM post AS p WHERE p.isdeleted = false AND p.user_id = $3 ${filter} ${search_filter}) AS total_count
             FROM data
         `, params);
-        const data = result.rows[0]
+        const data = result.rows
         return { data: data?.data || [], total: data.total_count };
     } catch (error) {
         throw new ErrorResponse(error, error.statusCode)
     }
 }
 
-const getByIdPostService = async (user_id, id, click = true) => {
-    const client = await pool.connect()
+const getByIdPostService = async (user_id, id) => {
     try {
-        await client.query(`BEGIN`)
-        let result = await client.query(`
+        let result = await pool.query(`--sql
             SELECT 
                 p.id, 
                 p.title, 
@@ -119,16 +117,9 @@ const getByIdPostService = async (user_id, id, click = true) => {
         if (!result.rows[0]) {
             throw new ErrorResponse('Post not found', 404)
         }
-        if(click){
-            await client.query(`UPDATE POST SET click = click + 1 WHERE id = $1`, [id])
-        }
-        await client.query(`COMMIT`) 
         return result.rows[0];
     } catch (error) {
-        await client.query(`ROLLBACK`)
         throw new ErrorResponse(error, error.statusCode)
-    } finally {
-        client.release()
     }
 }
 

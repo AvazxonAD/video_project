@@ -17,6 +17,7 @@ app.use('/category', require('./category/category.routes'))
 app.use('/post', require('./post/post.routes'))
 app.use('/teg', require('./teg/teg.routes'))
 app.use('/storage/image', require('./storage/image.routes'))
+app.use('/user/panel', require('./user.panel/user.panel.routes'))
 
 app.use(require("./utils/errorHandler"));
 
