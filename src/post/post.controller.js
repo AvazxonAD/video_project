@@ -43,9 +43,12 @@ const createPost = async (req, res) => {
 const getPost = async (req, res) => {
     try {
         const user_id = req.user.id
-        const { page, limit, category_id } = validationResponse(postQueryValidation, req.query)
+        const { page, limit, category_id, search } = validationResponse(postQueryValidation, req.query)
         const offset = (page - 1) * limit
-        const { data, total } = await getPostService(offset, limit, category_id, user_id);
+        if(category_id){
+            await getByIdCategoryService(user_id, category_id)
+        }
+        const { data, total } = await getPostService(offset, limit, category_id, user_id, search);
         const pageCount = Math.ceil(total / limit);
         const meta = {
             pageCount: pageCount,
@@ -64,34 +67,53 @@ const getPost = async (req, res) => {
 // updatePost
 const updatePost = async (req, res) => {
     try {
-        const user_id = req.user.id
-        const id = req.params.id
-        const old_data = await getByIdPostService(user_id, id, false)
-        const data = validationResponse(postValidation, req.body)
-        await getByIdCategoryService(user_id, data.category_id)
-        const filePath = path.join(__dirname, `../../public/${old_data.imageurl}`)
-        const tag_array = data.tags.split(',')
-        for (let tag of tag_array) {
-            await getByIdtegService(user_id, tag)
+        const user_id = req.user.id;
+        const id = req.params.id;
+        const old_data = await getByIdPostService(user_id, id, false);
+        const data = validationResponse(postValidation, req.body);
+        if(data.category_id){
+            await getByIdCategoryService(user_id, data.category_id);
+            old_data.category_id = data.category_id
         }
-        data.tags = tag_array
-        const url = '/uploads/' + req.file.filename
-        const result = await updatePostService({ ...data, user_id, imageurl: url, id });
-        fs.unlink(filePath, (err) => {
-            if (err) {
-                console.error(err);
-            }
-        });
-        resFunc(res, 201, result)
+        if(data.content){
+            old_data.content = data.content
+        }
+        if(data.title){
+            old_data.title = data.title
+        }
+        if(data.descr){
+            old_data.descr = data.descr
+        }
+        if(data.fio){
+            old_data.fio = data.fio
+        }
+        if(data.tags){
+            const tag_array = data.tags.split(',');
+            for (let tag of tag_array) {
+                await getByIdtegService(user_id, tag);
+            };
+            old_data.tags = tag_array
+        }
+        if(req.file){
+            const filePath = path.join(__dirname, `../../public/${old_data.imageurl}`);
+            old_data.imageurl = '/uploads/' + req.file.filename
+            fs.unlink(filePath, (err) => {
+                if (err) {
+                    console.error(err);
+                }
+            });
+        }
+        const result = await updatePostService({ ...old_data, user_id });
+        resFunc(res, 201, result);
     } catch (error) {
-        errorCatch(error, res)
+        errorCatch(error, res);
     }
-}
+};
 
 // delete category 
 const deletePost = async (req, res) => {
     try {
-        const user_id = req.user.id
+        const user_id = req.user.id;
         const id = req.params.id;
         await getByIdPostService(user_id, id, false);
         await deletePostService(id);
@@ -99,7 +121,7 @@ const deletePost = async (req, res) => {
     } catch (error) {
         errorCatch(error, res)
     }
-}
+};
 
 // get element by id
 const getByIdPost = async (req, res) => {

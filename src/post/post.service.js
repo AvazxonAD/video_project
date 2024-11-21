@@ -40,17 +40,47 @@ const createPostService = async (data) => {
     }
 }
 
-const getPostService = async (offset, limit, category_id, user_id) => {
+const getPostService = async (offset, limit, category_id, user_id, search) => {
     try {
         const params = [offset, limit, user_id]
         let filter = ``
+        let search_filter = ``
         if (category_id) {
-            filter = ` AND category_id = $${params.length + 1}`
+            filter = ` AND p.category_id = $${params.length + 1}`
             params.push(category_id)
         }
+        if(search){
+            search_filter = `AND p.title ILIKE '%' || $${params.length + 1} || '%'`
+            params.push(search)
+        }
         const result = await pool.query(`
-            WITH data AS (SELECT id, title, fio, descr, content, category_id, view, click, imageurl FROM post WHERE isdeleted = false AND user_id = $3 ${filter} ORDER BY created_at OFFSET $1 LIMIT $2)
-            SELECT ARRAY_AGG(row_to_json(data)) AS data, (SELECT COALESCE((COUNT(id)), 0)::INTEGER FROM post WHERE isdeleted = false AND user_id = $3 ${filter}) AS total_count
+            WITH data AS 
+                (
+                    SELECT 
+                        p.id, 
+                        p.title, 
+                        p.fio, 
+                        p.descr, 
+                        p.content, 
+                        p.category_id, 
+                        c.name AS category_name,
+                        p.view, 
+                        p.click, 
+                        p.imageurl, 
+                        (
+                            SELECT JSONB_AGG(JSON_BUILD_OBJECT('id', t.id, 'teg', t.teg))
+                            FROM tag_post pt
+                            JOIN teg t ON t.id = pt.tag_id
+                            WHERE pt.post_id = p.id
+                        ) AS tags
+                    FROM post AS p 
+                    JOIN category AS c ON c.id = p.category_id
+                    WHERE p.isdeleted = false AND p.user_id = $3 ${filter} ${search_filter}
+                    ORDER BY p.created_at OFFSET $1 LIMIT $2
+                )
+            SELECT 
+                ARRAY_AGG(row_to_json(data)) AS data, 
+                (SELECT COALESCE((COUNT(id)), 0)::INTEGER FROM post AS p WHERE p.isdeleted = false AND p.user_id = $3 ${filter} ${search_filter}) AS total_count
             FROM data
         `, params);
         const data = result.rows[0]
@@ -65,9 +95,26 @@ const getByIdPostService = async (user_id, id, click = true) => {
     try {
         await client.query(`BEGIN`)
         let result = await client.query(`
-            SELECT id, title, fio, descr, content, category_id, view, click, imageurl 
-            FROM post 
-            WHERE id = $1 AND isdeleted = false AND user_id = $2
+            SELECT 
+                p.id, 
+                p.title, 
+                p.fio, 
+                p.descr, 
+                p.content, 
+                p.category_id, 
+                c.name AS category_name,
+                p.view, 
+                p.click, 
+                p.imageurl, 
+                (
+                    SELECT JSONB_AGG(JSON_BUILD_OBJECT('id', t.id, 'teg', t.teg))
+                    FROM tag_post pt
+                    JOIN teg t ON t.id = pt.tag_id
+                    WHERE pt.post_id = p.id
+                ) AS tags
+            FROM post AS p  
+            JOIN category AS c ON c.id = p.category_id
+            WHERE p.id = $1 AND p.isdeleted = false AND p.user_id = $2
         `, [id, user_id]);
         if (!result.rows[0]) {
             throw new ErrorResponse('Post not found', 404)

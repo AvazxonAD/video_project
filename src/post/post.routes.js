@@ -13,7 +13,7 @@ const {
 
 router.post("/", protect, upload.single('image'), createPost);
 router.get("/", protect,  getPost);
-router.put("/:id", protect, upload.single('image'), updatePost);
+router.patch("/:id", protect, upload.single('image'), updatePost);
 router.delete("/:id", protect, deletePost);
 router.get("/:id", protect,  getByIdPost);
 

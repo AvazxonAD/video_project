@@ -45,7 +45,8 @@ const postValidation = Joi.object({
 const postQueryValidation = Joi.object({
     page: Joi.number().min(1).default(1),
     limit: Joi.number().min(1).default(10),
-    category_id: Joi.number().min(1)
+    category_id: Joi.number().min(1),
+    search: Joi.string().trim()
 })
 module.exports = { 
     fileUploadValidation, 
